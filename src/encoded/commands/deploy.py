@@ -267,7 +267,6 @@ def get_user_data(commit, config_file, data_insert, main_args):
         auth_type=auth_type,
     )
     data_insert['S3_AUTH_KEYS'] = auth_keys_dir
-    data_insert['REDIS_PORT'] = main_args.redis_port
     user_data = config_template % data_insert
     return user_data
 
@@ -334,7 +333,6 @@ def _get_run_args(main_args, instances_tag_data):
             'GIT_REPO': main_args.git_repo,
             'ES_IP': main_args.es_ip,
             'ES_PORT': main_args.es_port,
-            'GIT_REPO': main_args.git_repo,
             'REDIS_IP': main_args.redis_ip,
             'REDIS_PORT': main_args.redis_port,
             'PG_IP': main_args.pg_ip,
@@ -343,6 +341,8 @@ def _get_run_args(main_args, instances_tag_data):
         }
         if main_args.no_es:
             config_file = ':cloud-config-no-es.yml'
+        elif main_args.es_worker:
+            config_file = ':cloud-config-worker.yml'
         elif main_args.cluster_name:
             config_file = ':cloud-config-cluster.yml'
             data_insert['CLUSTER_NAME'] = main_args.cluster_name
@@ -595,6 +595,8 @@ def parse_args():
     parser.add_argument('--elasticsearch', default=None, help="Launch an Elasticsearch instance")
     parser.add_argument('--es-ip', default='localhost', help="ES Master ip address")
     parser.add_argument('--es-port', default='9201', help="ES Master ip port")
+    parser.add_argument('--pg-ip', default='localhost', help="Postgresql Master ip address")
+    parser.add_argument('--pg-port', default='5432', help="Postgresql Master ip port")
     parser.add_argument('--image-id', default='ami-2133bc59',
                         help=(
                             "https://us-west-2.console.aws.amazon.com/ec2/home"
@@ -642,10 +644,12 @@ def parse_args():
         elif args.candidate:
             args.role = 'candidate'
     # Set apache conf based on role and/or argument
-    available_cfgs = ['no-region', 'encoded']
+    available_cfgs = ['no-region', 'encoded', 'worker']
     if not args.apache_cfg:
         args.apache_cfg = 'encoded'
-        if args.role == 'demo':
+        if args.es_worker:
+            args.apache_cfg = 'worker'
+        elif args.role == 'demo':
             args.apache_cfg = 'no-region'
     elif args.apache_cfg not in available_cfgs:
         print('apache-cfg must be %s' % ','.join(available_cfgs))
