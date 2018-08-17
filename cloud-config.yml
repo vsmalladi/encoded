@@ -99,7 +99,7 @@ bootcmd:
 - cloud-init-per once fallocate-swapfile fallocate -l 4G /swapfile
 - cloud-init-per once chmod-swapfile chmod 600 /swapfile
 - cloud-init-per once mkswap-swapfile mkswap /swapfile
-- sudo apt-mark hold linux-headers-3.13.0-142 linux-headers-3.13.0-142-generic linux-image-3.13.0-142-generic
+- apt-mark hold 3.13.0-142-generic
 package_upgrade: true
 packages:
 # - apache2-mpm-worker
