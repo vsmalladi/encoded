@@ -99,11 +99,11 @@ bootcmd:
 - cloud-init-per once fallocate-swapfile fallocate -l 4G /swapfile
 - cloud-init-per once chmod-swapfile chmod 600 /swapfile
 - cloud-init-per once mkswap-swapfile mkswap /swapfile
-- apt-mark hold linux-headers-3.13.0-142 linux-headers-3.13.0-142-generic linux-image-3.13.0-142-generic
+- sudo apt-mark hold linux-headers-3.13.0-142 linux-headers-3.13.0-142-generic linux-image-3.13.0-142-generic
 package_upgrade: true
-# packages:
+packages:
 # - apache2-mpm-worker
-# - awscli
+ - awscli
 # - bsdtar
 # - build-essential
 # - elasticsearch
