@@ -245,3 +245,14 @@ class LongReadRnaQualityMetric(QualityMetric, CalculatedAssayTermID):
 class MicroRnaQualityMetric(QualityMetric, CalculatedAssayTermID):
     item_type = 'micro_rna_quality_metric'
     schema = load_schema('encoded:schemas/micro_rna_quality_metric.json')
+
+
+@collection(
+    name='atac-quality-metrics',
+    properties={
+        'title': "ATAC-seq Quality Metrics",
+        'description': 'A set of ATAC QC metrics',
+    })
+class AtacQualityMetric(QualityMetric, CalculatedAssayTermID):
+    item_type = 'atac_quality_metric'
+    schema = load_schema('encoded:schemas/atac_quality_metric.json')
