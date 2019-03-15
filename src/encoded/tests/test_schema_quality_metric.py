@@ -41,20 +41,9 @@ def long_read_rna_quality_metric(analysis_step_run, file, award, lab, replicate_
 
 
 @pytest.fixture
-def micro_rna_quality_metric(analysis_step_run, file, award, lab, replicate_1_1):
+def micro_rna_quality_metric(analysis_step_run, file, award, lab):
     return {
-        "award": award["uuid"],
-        "lab": lab["uuid"],
-        "step_run": analysis_step_run["uuid"],
-        "quality_metric_of": [file["uuid"]],
-        "miRNA_alignments": [{
-                "replicate": replicate_1_1["uuid"],
-                "aligned_reads": 100
-        }],
-        "miRNA_expression" : [{
-                "replicate": replicate_1_1["uuid"],
-                "expressed_mirnas": 100
-        }]
+       
     }
 
 
@@ -75,5 +64,5 @@ def test_long_read_rna_quality_metric(testapp, long_read_rna_quality_metric, rep
 
 
 def test_micro_rna_quality_metric(testapp, micro_rna_quality_metric):
-    res = testapp.post_json("/micro_rna_quality_metric", micro_rna_quality_metric, expect_errors=False)
+    res = testapp.post_json('/micro_rna_quality_metric', micro_rna_quality_metric, expect_errors=False)
     assert res.status_code == 201

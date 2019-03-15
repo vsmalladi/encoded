@@ -4,7 +4,7 @@
     "id": "/profiles/micro_rna_quality_metric.json",
     "$schema": "http://json-schema.org/draft-04/schema#",
     "type": "object",
-    "required": ["step_run", "award", "lab", "miRNA_alignments", "miRNA_expression"],
+    "required": ["step_run", "award", "lab"],
     "additionalProperties": false,
     "identifyingProperties": ["uuid"],
     "mixinProperties": [
@@ -88,10 +88,12 @@
                         "maxItems" : 2,
                         "minItems" : 2,
                         "items": {
-                            "title": "Replicate",
-                            "description": "Isogenic replicate",
-                            "type": "string",
-                            "linkTo": "Replicate"
+                            "replicate": {
+                                "title": "Replicate",
+                                "description": "Isogenic replicate",
+                                "type": "string",
+                                "linkTo": "Replicate"
+                            }
                         }
                     },
                     "spearman_correlation": {
