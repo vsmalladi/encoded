@@ -88,12 +88,10 @@
                         "maxItems" : 2,
                         "minItems" : 2,
                         "items": {
-                            "replicate": {
-                                "title": "Replicate",
-                                "description": "Isogenic replicate",
-                                "type": "string",
-                                "linkTo": "Replicate"
-                            }
+                            "title": "Replicate",
+                            "description": "Isogenic replicate",
+                            "type": "string",
+                            "linkTo": "Replicate"
                         }
                     },
                     "spearman_correlation": {
