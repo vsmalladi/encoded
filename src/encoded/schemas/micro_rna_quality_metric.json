@@ -22,7 +22,8 @@
             "default": "1"
         },
         "miRNA_alignments": {
-            "title": "Number of reads mapped to the miRNA subset of genome (unique and multimapped less than 10 times)",
+            "title": "miRNA alignments",
+            "description": "Number of reads mapped to the miRNA subset of genome (unique and multimapped less than 10 times)",
             "comment": "Multimapped to more than 10 locations reads are filtered",
             "type":  "array",
             "uniqueItems": true,
@@ -38,7 +39,7 @@
                         "linkTo": "Replicate"
                     },
                     "aligned_reads": {
-                        "title": "Number of reads mapped to the miRNA subset of genome",
+                        "title": "Aligned reads",
                         "description": "Quantity of reads mapped uniquely or multimapped less than 10 times to the miRNA subset of the genome",
                         "type": "number",
                         "minimum":0
@@ -47,7 +48,8 @@
             }
         },
         "miRNA_expression": {
-            "title": "Number of miRNAs expressed",
+            "title": "miRNA expression",
+            "description": "Number of miRNAs expressed",
             "comment": "miRNAs expressed < 2 cpms are filtered",
             "type":  "array",
             "uniqueItems": true,
@@ -63,7 +65,7 @@
                         "linkTo": "Replicate"
                     },
                     "expressed_mirnas": {
-                        "title": "Number of miRNAs expressed",
+                        "title": "Expressed miRNAs",
                         "description": "Quantity of miRNAs expressed with >2 cpms",
                         "type": "number",
                         "minimum":0
@@ -72,11 +74,13 @@
             }
         },
         "replicates_correlation": {
-            "title": "Spearman correlation coefficient of replicates",
+            "title": "Replicates correlation",
+            "description": "Spearman correlation coefficient of replicate pairs",
             "type":  "array",
             "uniqueItems": true,
             "items": {
-                "title": "Spearman correlation between replicates pairs",
+                "title": "Replicates pair correlation",
+                "description": "Spearman correlation between replicates pair",
                 "type": "object",
                 "required": ["replicates", "spearman_correlation"],
                 "properties": {
