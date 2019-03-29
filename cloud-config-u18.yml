@@ -138,9 +138,10 @@ power_state:
   mode: reboot
 output:
   all: '| tee -a /var/log/cloud-init-output.log'
-runcmd:
-- sudo -u ubuntu cp /home/ubuntu/.ssh/authorized_keys /home/ubuntu/.ssh/authorized_keys2
-- sudo -u ubuntu aws s3 cp --region=us-west-2 %(S3_AUTH_KEYS)s /home/ubuntu/.ssh/authorized_keys
+
+  #runcmd:
+  # - sudo -u ubuntu cp /home/ubuntu/.ssh/authorized_keys /home/ubuntu/.ssh/authorized_keys2
+  # - sudo -u ubuntu aws s3 cp --region=us-west-2 %(S3_AUTH_KEYS)s /home/ubuntu/.ssh/authorized_keys
   # - cp /etc/redis/redis.conf /etc/redis/redis.conf.default
   # - sed -i -e 's/port 6379/port %(REDIS_PORT)s/' /etc/redis/redis.conf
   # - sed -i -e 's/bind 127\.0\.0\.1/bind 0\.0\.0\.0/' /etc/redis/redis.conf

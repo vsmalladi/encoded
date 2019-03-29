@@ -348,6 +348,7 @@ def _get_run_args(main_args, instances_tag_data):
             config_file = ':cloud-config-u18.yml'
         else:
             config_file = ':cloud-config.yml'
+        print('config_file', config_file)
         if main_args.set_region_index_to:
             data_insert['REGION_INDEX'] = main_args.set_region_index_to
         user_data = get_user_data(instances_tag_data['commit'], config_file, data_insert, main_args)
