@@ -660,7 +660,7 @@ def parse_args():
         elif args.candidate:
             args.role = 'candidate'
     if args.u18:
-        args.image_id = 'ami-061392db613a6357b'
+        args.image_id = 'ami-005bdb005fb00e791'
     return args
 
 
