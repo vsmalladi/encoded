@@ -344,6 +344,8 @@ def _get_run_args(main_args, instances_tag_data):
             config_file = ':cloud-config-cluster.yml'
             data_insert['CLUSTER_NAME'] = main_args.cluster_name
             data_insert['REGION_INDEX'] = 'True'
+        elif main_args.u18:
+            config_file = ':cloud-config-u18.yml'
         else:
             config_file = ':cloud-config.yml'
         if main_args.set_region_index_to:
@@ -639,6 +641,7 @@ def parse_args():
         help="Set EC2 availabilty zone")
     parser.add_argument('--git-repo', default='https://github.com/ENCODE-DCC/encoded.git',
             help="Git repo to checkout branches: https://github.com/{user|org}/{repo}.git")
+    parser.add_argument('--u18', action='store_true', help='Build on ubuntu 18')
     # Set Role
     # - 'demo' role is default for making single or clustered
     # applications for feature building
@@ -655,6 +658,8 @@ def parse_args():
             args.candidate = False
         elif args.candidate:
             args.role = 'candidate'
+    if args.u18:
+        args.image_id = 'ami-061392db613a6357b'
     return args
 
 
