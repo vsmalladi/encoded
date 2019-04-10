@@ -101,7 +101,9 @@
                     "spearman_correlation": {
                         "title": "Spearman correlation",
                         "type": "number",
-                        "description": "Spearman correlation coefficient of replicates from quantification"
+                        "description": "Spearman correlation coefficient of replicates from quantification",
+                        "minimum": -1,
+                        "maximum": 1
                     }             
                 }
             }
