@@ -13,6 +13,13 @@
         "miRNA_expression" : [{
                 "replicate": "cc236116-825a-465f-ae0c-5ab21f01a6b3",
                 "expressed_mirnas": 100
+        }],
+        "replicates_correlation": [{
+            "replicates": [
+                "cc236116-825a-465f-ae0c-5ab21f01a6b3",
+                "d990fa42-09e9-4b24-b5f9-44efbdbf4363"
+            ],
+            "spearman_correlation": 0.4
         }]
     }
 ]
