@@ -63,6 +63,9 @@
         "award":"U41HG006992",
         "dataset": "ENCSR000ADH",
         "date_created": "2013-04-18T16:46:18.670068+00:00",
+        "derived_from": [
+            "9558830f-154f-449f-814b-fd3435417edf"
+        ],
         "file_format": "bigWig",
         "lab":"j-michael-cherry",
         "md5sum": "94be74b6e11515393507f4ebfa66d78d",
