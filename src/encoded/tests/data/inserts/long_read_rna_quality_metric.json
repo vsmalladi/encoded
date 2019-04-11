@@ -10,19 +10,31 @@
         "replicates_mapping_rate": [
             {
                 "replicate": "3b427e79-556e-4125-8102-f6723471807e",
-                "mapping_rate": 0.46
+                "mapping_rate": 1.0
+            },
+            {
+                "replicate": "1415a44a-f28e-4ffb-9bc8-188385ecb4d5",
+                "mapping_rate": 1.0
             }
         ],
         "replicates_sequencing_depth": [
             {
                 "replicate": "3b427e79-556e-4125-8102-f6723471807e",
-                "full_length_non_chimeric_read_count": 1000000
+                "full_length_non_chimeric_read_count": 10000
+            },
+            {
+                "replicate": "1415a44a-f28e-4ffb-9bc8-188385ecb4d5",
+                "full_length_non_chimeric_read_count": 10000
             }
         ],
         "replicates_genes_detected": [
             {
                 "replicate": "3b427e79-556e-4125-8102-f6723471807e",
-                "genes_detected": 7654
+                "genes_detected": 503
+            },
+            {
+                "replicate": "1415a44a-f28e-4ffb-9bc8-188385ecb4d5",
+                "genes_detected": 527
             }
         ],
         "replicates_correlation": [{
@@ -30,7 +42,7 @@
                 "3b427e79-556e-4125-8102-f6723471807e",
                 "1415a44a-f28e-4ffb-9bc8-188385ecb4d5"
             ],
-            "spearman_correlation": 0.99
+            "spearman_correlation": 0.7929283720562202
         }]
     }
 ]
