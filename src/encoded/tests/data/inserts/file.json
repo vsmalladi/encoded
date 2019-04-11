@@ -2394,6 +2394,9 @@
         "assembly": "hg19",
         "award": "U54HG006998",
         "dataset": "ENCSR751ISO",
+        "derived_from": [
+            "/files/ENCFF001MXH/"
+        ],
         "file_format": "bam",
         "file_size": 398856,
         "lab": "/labs/robert-waterston/",
