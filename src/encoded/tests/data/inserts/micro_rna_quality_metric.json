@@ -6,20 +6,32 @@
         "quality_metric_of": [ "9558830f-154f-449f-814b-fd3435417edf"],
         "lab": "/labs/robert-waterston/",
         "award": "/awards/U41HG007355/",
-        "miRNA_alignments": [{
-            "replicate": "cc236116-825a-465f-ae0c-5ab21f01a6b3",
-            "aligned_reads": 100
-        }],
-        "miRNA_expression" : [{
+        "miRNA_alignments": [
+            {
                 "replicate": "cc236116-825a-465f-ae0c-5ab21f01a6b3",
-                "expressed_mirnas": 100
-        }],
+                "aligned_reads": 37417791
+            },
+            {
+                "replicate": "d990fa42-09e9-4b24-b5f9-44efbdbf4363",
+                "aligned_reads": 31442821
+            }
+        ],
+        "miRNA_expression" : [
+            {
+                "replicate": "cc236116-825a-465f-ae0c-5ab21f01a6b3",
+                "expressed_mirnas": 319
+            },
+            {
+                "replicate": "d990fa42-09e9-4b24-b5f9-44efbdbf4363",
+                "expressed_mirnas": 365
+            }
+        ],
         "replicates_correlation": [{
             "replicates": [
                 "cc236116-825a-465f-ae0c-5ab21f01a6b3",
                 "d990fa42-09e9-4b24-b5f9-44efbdbf4363"
             ],
-            "spearman_correlation": 0.4
+            "spearman_correlation": 0.8839878512395053
         }]
     }
 ]
