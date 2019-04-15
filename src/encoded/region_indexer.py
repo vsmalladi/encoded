@@ -32,7 +32,7 @@ from snovault.elasticsearch.interfaces import (
     INDEXER,
 )
 
-log = logging.getLogger(__name__)
+log = logging.getLogger('snovault.elasticsearch.es_index_listener')
 
 
 # Region indexer 2.0

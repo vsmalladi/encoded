@@ -39,7 +39,7 @@ from .vis_defines import (
 from .visualization import vis_cache_add
 
 
-log = logging.getLogger(__name__)
+log = logging.getLogger('snovault.elasticsearch.es_index_listener')
 
 
 def includeme(config):
