@@ -1,4 +1,6 @@
 #cloud-config
+# ref: https://encodedcc.atlassian.net/browse/ENCD-3336
+# sub-ref: https://encodedcc.atlassian.net/browse/WRAN-875?jql=project%20%3D%20WRAN%20and%20comment%20~%20wal-e%20ORDER%20BY%20created%20DESC
 ssh_authorized_keys:
   - %(LOCAL_SSH_KEY)s
 bootcmd:
@@ -7,8 +9,17 @@ bootcmd:
 - cloud-init-per once chmod-swapfile chmod 600 /swapfile
 - cloud-init-per once mkswap-swapfile mkswap /swapfile
 package_upgrade: true
+packages:
+- build-essential
+- libreadline-dev
+- zlib1g-dev
 output:
   all: '| tee -a /var/log/cloud-init-output.log'
 runcmd:
 - sudo -u ubuntu mv /home/ubuntu/.ssh/authorized_keys /home/ubuntu/.ssh/authorized_keys2
 - sudo -u ubuntu aws s3 cp --region=us-west-2 %(S3_AUTH_KEYS)s /home/ubuntu/.ssh/authorized_keys
+# https://www.postgresql.org/ftp/source/v11.2/
+# download postgresql-11.2.tar.gz
+# scp to machine or get directly to ubuntu home
+# https://www.postgresql.org/docs/11/install-short.html
+# only issue on short install was su needed to be sudo su and postgres user got password postgres
