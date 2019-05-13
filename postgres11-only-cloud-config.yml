@@ -2,7 +2,7 @@
 ssh_authorized_keys:
   - %(LOCAL_SSH_KEY)s
 apt_sources:
-- source: "ppa:webupd8team/java"
+- source: "ppa:linuxuprising/java"
 - source: "deb https://artifacts.elastic.co/packages/5.x/apt stable main"
   key: |
     -----BEGIN PGP PUBLIC KEY BLOCK-----
@@ -170,7 +170,6 @@ apt_sources:
 bootcmd:
 - set -ex
 - cloud-init-per once accepted-oracle-license-v1-2 echo "oracle-java11-installer shared/accepted-oracle-license-v1-2 select true" | debconf-set-selections
-
 - cloud-init-per once fallocate-swapfile fallocate -l 4G /swapfile
 - cloud-init-per once chmod-swapfile chmod 600 /swapfile
 - cloud-init-per once mkswap-swapfile mkswap /swapfile
@@ -255,7 +254,6 @@ runcmd:
 - chown build:build /opt/cloudwatchmon
 - sudo -u build virtualenv --python=python2.7 /opt/cloudwatchmon
 - sudo -u build /opt/cloudwatchmon/bin/pip install -r cloudwatchmon-requirements.txt
-
 - chown postgres:postgres /etc/postgresql/11/main/*.conf
 - echo "include 'custom.conf'" >> /etc/postgresql/11/main/postgresql.conf
 - if test "%(ROLE)s" != "candidate"
@@ -265,7 +263,6 @@ runcmd:
 - fi
 - sudo -u postgres createuser encoded
 - sudo -u postgres createdb --owner=encoded encoded
-# Wal-E - Install
 - sudo -u postgres /usr/bin/pg_ctlcluster 11 main stop
 - mkdir /opt/pg-wal-e
 - chown -R postgres:postgres /opt/pg-wal-e
