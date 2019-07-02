@@ -1,0 +1,3 @@
+[profile wale-write-backups-prod]
+region = us-west-2
+output = json
