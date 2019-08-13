@@ -322,6 +322,7 @@ def _get_cloud_config_yaml(
         conf_dir=None,
         cluster_name=None,
         elasticsearch=False,
+        pg_93=False,
         no_es=False,
         build_new_config=False,
         use_local_config=False,
@@ -338,14 +339,17 @@ def _get_cloud_config_yaml(
             build_dir,
             'cc-parts',
         )
-    filename = 'demo.yml'
+    postgres_version=''
+    if pg_93:
+        postgres_version='-pg93'
+    filename = "demo{}.yml".format(postgres_version)
     if single_data_master:
         if elasticsearch:
             filename = 'es-wait-head.yml'
         else:
             filename = 'es-head.yml'
     elif no_es:
-        filename = 'frontend.yml'
+        filename = "frontend{}.yml".format(postgres_version)
     elif elasticsearch:
         filename = 'es-elect-head.yml'
     filepath = build_dir + '/' + filename
@@ -477,6 +481,7 @@ def main():
         main_args.conf_dir,
         main_args.cluster_name,
         main_args.elasticsearch,
+        main_args.pg_93,
         main_args.no_es,
         build_new_config=main_args.build_new_config,
         use_local_config=main_args.use_local_config,
@@ -602,6 +607,7 @@ def parse_args():
     parser.add_argument('--instance-type', default='c5.9xlarge',
                         help="c5.9xlarge for indexing. Switch to a smaller instance (m5.xlarge or c5.xlarge).")
     parser.add_argument('--profile-name', default=None, help="AWS creds profile")
+    parser.add_argument('--pg-93', action='store_true', help="Use postgres 9.3 deployment files")
     parser.add_argument('--no-es', action='store_true', help="Use non ES cloud condfig")
     parser.add_argument('--redis-ip', default='localhost', help="Redis IP.")
     parser.add_argument('--redis-port', default=6379, help="Redis Port.")
