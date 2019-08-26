@@ -14,7 +14,7 @@ requires = [
     'snovault',
     'Pillow',
     'PyBrowserID',
-    'SQLAlchemy>=1.0.0b1',
+    'SQLAlchemy==1.3.7',
     'WSGIProxy2',
     'WebTest',
     'jmespath',
@@ -41,7 +41,7 @@ requires = [
     'strict_rfc3339',
     'subprocess_middleware',
     'xlrd',
-    'zope.sqlalchemy',
+    'zope.sqlalchemy==1.1',
 ]
 
 if sys.version_info.major == 2:
