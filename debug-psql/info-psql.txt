@@ -1,0 +1,9 @@
+# indexes in table
+SELECT * FROM pg_indexes WHERE tablename = 'current_propsheets';
+
+# indexes in db
+\di
+
+https://confluence.atlassian.com/kb/optimize-and-improve-postgresql-performance-with-vacuum-analyze-and-reindex-885239781.html
+VACUUM (FULL, ANALYZE)
+

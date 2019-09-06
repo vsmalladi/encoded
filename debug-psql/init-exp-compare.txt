@@ -1,0 +1,20 @@
+initial index of 2 uuids was 'cycle_took': '0:00:03.846069'
+set do_time_rdbs = true
+send restart okay
+send reindex from site
+full reindex of 2 uuids was 'cycle_took': '0:00:03.529296'
+reindex 2eb068c5-b7a6-48ec-aca2-c439e4dabb08 'cycle_took': '0:00:00.130728'
+reindex 2eb068c5-b7a6-48ec-aca2-c439e4dabb08 'cycle_took': '0:00:00.111317'
+
+$ ./psql-query-time.sh
+
+real	0m0.038s
+user	0m0.024s
+sys	0m0.003s
+
+Set index procs none
+
+restart with updates
+reindex 2eb068c5-b7a6-48ec-aca2-c439e4dabb08 run time:0.008036, 'cycle_took': '0:00:00.075612'
+reindex 2eb068c5-b7a6-48ec-aca2-c439e4dabb08 run time:0.004678, 'cycle_took': '0:00:00.065651'
+

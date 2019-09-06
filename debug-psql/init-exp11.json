@@ -1,0 +1,133 @@
+                                                          QUERY PLAN                                                           
+-------------------------------------------------------------------------------------------------------------------------------
+ [                                                                                                                            +
+   {                                                                                                                          +
+     "Plan": {                                                                                                                +
+       "Node Type": "Limit",                                                                                                  +
+       "Parallel Aware": false,                                                                                               +
+       "Startup Cost": 597.45,                                                                                                +
+       "Total Cost": 1275.59,                                                                                                 +
+       "Plan Rows": 1,                                                                                                        +
+       "Plan Width": 280,                                                                                                     +
+       "Plans": [                                                                                                             +
+         {                                                                                                                    +
+           "Node Type": "Nested Loop",                                                                                        +
+           "Parent Relationship": "Outer",                                                                                    +
+           "Parallel Aware": false,                                                                                           +
+           "Join Type": "Inner",                                                                                              +
+           "Startup Cost": 597.45,                                                                                            +
+           "Total Cost": 42642.18,                                                                                            +
+           "Plan Rows": 62,                                                                                                   +
+           "Plan Width": 280,                                                                                                 +
+           "Inner Unique": true,                                                                                              +
+           "Plans": [                                                                                                         +
+             {                                                                                                                +
+               "Node Type": "Hash Join",                                                                                      +
+               "Parent Relationship": "Outer",                                                                                +
+               "Parallel Aware": false,                                                                                       +
+               "Join Type": "Inner",                                                                                          +
+               "Startup Cost": 597.01,                                                                                        +
+               "Total Cost": 42240.16,                                                                                        +
+               "Plan Rows": 62,                                                                                               +
+               "Plan Width": 180,                                                                                             +
+               "Inner Unique": false,                                                                                         +
+               "Hash Cond": "(current_propsheets_1.rid = resources_1.rid)",                                                   +
+               "Plans": [                                                                                                     +
+                 {                                                                                                            +
+                   "Node Type": "Seq Scan",                                                                                   +
+                   "Parent Relationship": "Outer",                                                                            +
+                   "Parallel Aware": false,                                                                                   +
+                   "Relation Name": "current_propsheets",                                                                     +
+                   "Alias": "current_propsheets_1",                                                                           +
+                   "Startup Cost": 0.00,                                                                                      +
+                   "Total Cost": 35012.66,                                                                                    +
+                   "Plan Rows": 1767966,                                                                                      +
+                   "Plan Width": 52                                                                                           +
+                 },                                                                                                           +
+                 {                                                                                                            +
+                   "Node Type": "Hash",                                                                                       +
+                   "Parent Relationship": "Inner",                                                                            +
+                   "Parallel Aware": false,                                                                                   +
+                   "Startup Cost": 596.41,                                                                                    +
+                   "Total Cost": 596.41,                                                                                      +
+                   "Plan Rows": 48,                                                                                           +
+                   "Plan Width": 128,                                                                                         +
+                   "Plans": [                                                                                                 +
+                     {                                                                                                        +
+                       "Node Type": "Nested Loop",                                                                            +
+                       "Parent Relationship": "Outer",                                                                        +
+                       "Parallel Aware": false,                                                                               +
+                       "Join Type": "Inner",                                                                                  +
+                       "Startup Cost": 5.00,                                                                                  +
+                       "Total Cost": 596.41,                                                                                  +
+                       "Plan Rows": 48,                                                                                       +
+                       "Plan Width": 128,                                                                                     +
+                       "Inner Unique": true,                                                                                  +
+                       "Plans": [                                                                                             +
+                         {                                                                                                    +
+                           "Node Type": "Bitmap Heap Scan",                                                                   +
+                           "Parent Relationship": "Outer",                                                                    +
+                           "Parallel Aware": false,                                                                           +
+                           "Relation Name": "keys",                                                                           +
+                           "Alias": "keys",                                                                                   +
+                           "Startup Cost": 4.57,                                                                              +
+                           "Total Cost": 191.05,                                                                              +
+                           "Plan Rows": 48,                                                                                   +
+                           "Plan Width": 80,                                                                                  +
+                           "Recheck Cond": "(((name)::text = 'lab:name'::text) AND ((value)::text = 'peggy-farnham'::text))", +
+                           "Plans": [                                                                                         +
+                             {                                                                                                +
+                               "Node Type": "Bitmap Index Scan",                                                              +
+                               "Parent Relationship": "Outer",                                                                +
+                               "Parallel Aware": false,                                                                       +
+                               "Index Name": "keys_pkey",                                                                     +
+                               "Startup Cost": 0.00,                                                                          +
+                               "Total Cost": 4.56,                                                                            +
+                               "Plan Rows": 48,                                                                               +
+                               "Plan Width": 0,                                                                               +
+                               "Index Cond": "(((name)::text = 'lab:name'::text) AND ((value)::text = 'peggy-farnham'::text))"+
+                             }                                                                                                +
+                           ]                                                                                                  +
+                         },                                                                                                   +
+                         {                                                                                                    +
+                           "Node Type": "Index Scan",                                                                         +
+                           "Parent Relationship": "Inner",                                                                    +
+                           "Parallel Aware": false,                                                                           +
+                           "Scan Direction": "Forward",                                                                       +
+                           "Index Name": "resources_pkey",                                                                    +
+                           "Relation Name": "resources",                                                                      +
+                           "Alias": "resources_1",                                                                            +
+                           "Startup Cost": 0.43,                                                                              +
+                           "Total Cost": 8.45,                                                                                +
+                           "Plan Rows": 1,                                                                                    +
+                           "Plan Width": 48,                                                                                  +
+                           "Index Cond": "(rid = keys.rid)"                                                                   +
+                         }                                                                                                    +
+                       ]                                                                                                      +
+                     }                                                                                                        +
+                   ]                                                                                                          +
+                 }                                                                                                            +
+               ]                                                                                                              +
+             },                                                                                                               +
+             {                                                                                                                +
+               "Node Type": "Index Scan",                                                                                     +
+               "Parent Relationship": "Inner",                                                                                +
+               "Parallel Aware": false,                                                                                       +
+               "Scan Direction": "Forward",                                                                                   +
+               "Index Name": "propsheets_pkey",                                                                               +
+               "Relation Name": "propsheets",                                                                                 +
+               "Alias": "propsheets_1",                                                                                       +
+               "Startup Cost": 0.44,                                                                                          +
+               "Total Cost": 6.48,                                                                                            +
+               "Plan Rows": 1,                                                                                                +
+               "Plan Width": 100,                                                                                             +
+               "Index Cond": "(sid = current_propsheets_1.sid)"                                                               +
+             }                                                                                                                +
+           ]                                                                                                                  +
+         }                                                                                                                    +
+       ]                                                                                                                      +
+     }                                                                                                                        +
+   }                                                                                                                          +
+ ]
+(1 row)
+
