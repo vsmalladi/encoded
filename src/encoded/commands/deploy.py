@@ -161,7 +161,7 @@ def _get_instances_tag_data(main_args):
                 instances_tag_data['username'],
             )
         )
-        if main_args.elasticsearch:
+        if main_args.es_wait or main_args.es_elect:
             instances_tag_data['name'] = 'elasticsearch-' + instances_tag_data['name']
     return instances_tag_data
 
@@ -183,7 +183,40 @@ def _get_ec2_client(main_args, instances_tag_data):
 def _get_run_args(main_args, instances_tag_data, config_yaml):
     master_user_data = None
     cc_dir='/home/ubuntu/encoded/cloud-config/deploy-run-scripts'
-    if not main_args.elasticsearch:
+    if main_args.es_wait or main_args.es_elect:
+        # Data node clusters
+        count = int(main_args.cluster_size)
+        security_groups = ['elasticsearch-https']
+        iam_role = main_args.iam_role_es
+        es_opt = 'es-cluster-wait.yml' if main_args.es_wait else 'es-cluster-elect.yml'
+        data_insert = {
+            'CC_DIR': cc_dir,
+            'CLUSTER_NAME': main_args.cluster_name,
+            'ES_OPT_FILENAME': es_opt,
+            'GIT_BRANCH': main_args.branch,
+            'GIT_REPO': main_args.git_repo,
+            'JVM_GIGS': main_args.jvm_gigs,
+        }
+        user_data = get_user_data(instances_tag_data['commit'], config_yaml, data_insert, main_args)
+        # Additional head node
+        if main_args.es_wait:
+            master_data_insert = {
+                'BATCHUPGRADE_VARS': ' '.join(main_args.batchupgrade_vars),
+                'CC_DIR': cc_dir,
+                'CLUSTER_NAME': main_args.cluster_name,
+                'ES_OPT_FILENAME': 'es-cluster-head.yml',
+                'GIT_BRANCH': main_args.branch,
+                'GIT_REPO': main_args.git_repo,
+                'JVM_GIGS': main_args.jvm_gigs,
+            }
+            master_user_data = get_user_data(
+                instances_tag_data['commit'],
+                config_yaml,
+                master_data_insert,
+                main_args,
+            )
+    else:
+        # Single demo or Frontends
         security_groups = ['ssh-http-https']
         iam_role = main_args.iam_role
         count = 1
@@ -210,56 +243,20 @@ def _get_run_args(main_args, instances_tag_data, config_yaml):
         else:
             data_insert.update({
                 'JVM_GIGS': main_args.jvm_gigs,
+                'ES_OPT_FILENAME': 'es-demo.yml',
             })
         if main_args.set_region_index_to:
             data_insert.update({
                 'REGION_INDEX': main_args.set_region_index_to,
             })
         user_data = get_user_data(instances_tag_data['commit'], config_yaml, data_insert, main_args)
-    else:
-        if not main_args.cluster_name:
-            print("Cluster must have a name")
-            sys.exit(1)
-        count = int(main_args.cluster_size)
-        security_groups = ['elasticsearch-https']
-        iam_role = main_args.iam_role_es
-        data_insert = {
-            'CC_DIR': cc_dir,
-            'CLUSTER_NAME': main_args.cluster_name,
-            'ES_OPT_FILENAME': 'es-cluster-elect.yml',
-            'GIT_BRANCH': main_args.branch,
-            'GIT_REPO': main_args.git_repo,
-            'JVM_GIGS': main_args.jvm_gigs,
-        }
-        if main_args.single_data_master:
-            data_insert.update({
-                'ES_OPT_FILENAME': 'es-cluster-wait.yml',
-            })
-        user_data = get_user_data(instances_tag_data['commit'], config_yaml, data_insert, main_args)
-        if main_args.single_data_master:
-            master_data_insert = {
-                'BATCHUPGRADE_VARS': ' '.join(main_args.batchupgrade_vars),
-                'CC_DIR': cc_dir,
-                'CLUSTER_NAME': main_args.cluster_name,
-                'ES_OPT_FILENAME': 'es-cluster-head.yml',
-                'GIT_BRANCH': main_args.branch,
-                'GIT_REPO': main_args.git_repo,
-                'JVM_GIGS': main_args.jvm_gigs,
-            }
-            master_user_data = get_user_data(
-                instances_tag_data['commit'],
-                config_yaml,
-                master_data_insert,
-                main_args,
-            )
     run_args = {
         'count': count,
         'iam_role': iam_role,
+        'master_user_data': master_user_data,
         'user_data': user_data,
         'security_groups': security_groups,
     }
-    if master_user_data:
-        run_args['master_user_data'] = master_user_data
     return run_args
 
 
@@ -300,7 +297,7 @@ def _wait_and_tag_instances(main_args, run_args, instances_tag_data, instances, 
     output_list = []
     is_cluster_master = False
     is_cluster = False
-    if main_args.elasticsearch and run_args['count'] > 1:
+    if (main_args.es_wait or main_args.es_elect) and run_args['count'] > 1:
         if cluster_master and run_args['master_user_data']:
             is_cluster_master = True
         else:
@@ -310,10 +307,9 @@ def _wait_and_tag_instances(main_args, run_args, instances_tag_data, instances, 
         instances_tag_data['name'] = tmp_name
         instances_tag_data['id'] = instance.id
         if is_cluster_master:
-            # Hack: current tmp_name was the last data cluster, so remove '4'
-            instances_tag_data['name'] = "{}{}".format(tmp_name[0:-1], 'master')
+            instances_tag_data['name'] = "{}datamaster".format(tmp_name[0:-1])
         elif is_cluster:
-            instances_tag_data['name'] = "{}{}".format(tmp_name, i)
+            instances_tag_data['name'] = "{}-data{}".format(tmp_name, i)
         if is_cluster_master or (is_cluster and not created_cluster_master):
             created_cluster_master = True
             output_list.extend(_get_instance_output(
@@ -321,7 +317,10 @@ def _wait_and_tag_instances(main_args, run_args, instances_tag_data, instances, 
                 attach_dm=True,
                 given_name=main_args.name,
             ))
-        if is_cluster:
+            # For data node 0
+            if is_cluster:
+                output_list.append('  # Data Node %d: %s' % (i, instance.id))
+        elif is_cluster:
             output_list.append('  # Data Node %d: %s' % (i, instance.id))
         elif not is_cluster:
             output_list.extend(
@@ -331,62 +330,56 @@ def _wait_and_tag_instances(main_args, run_args, instances_tag_data, instances, 
                 )
             )
         instance.wait_until_exists()
-        tag_ec2_instance(instance, instances_tag_data, main_args.elasticsearch, main_args.cluster_name)
+        tag_ec2_instance(
+            instance, instances_tag_data, 
+            (main_args.es_wait or main_args.es_elect), 
+            main_args.cluster_name,
+        )
     return output_list
 
 
-def _get_cloud_config_yaml(
-        branch=None,
-        conf_dir=None,
-        cluster_name=None,
-        elasticsearch=False,
-        no_es=False,
-        postgres_version=None,
-        save_config_name=None,
-        single_data_master=False,
-        use_prebuilt_config=None,
-    ):
+def _get_cloud_config_yaml(main_args):
     """
     This will return a config yaml file built from a template and template parts
     - There will still be run variables in the template.
     """
-    # Incompatibile build argsuments
-    if postgres_version and postgres_version not in ['9.3']:
-        print("Error: postgres_version must be '9.3'")
-        return None, None, None
-    if (elasticsearch or single_data_master) and no_es:
-        print('Error: --elasticsearch or --single-data-master cannot also be --no-es frontend')
-        return None, None, None
-    if (elasticsearch or no_es or single_data_master) and not cluster_name:
-        print('Error: --cluster-name required for --elasticsearch or --single-data-master or --no-es')
-        return None, None, None
-    if cluster_name and not (elasticsearch or no_es or single_data_master):
-        print('Error: --cluster-name is only used with --elasticsearch or --single-data-master or --no-es')
-        return None, None, None
-    # Determine type of build from arguments
-    # - Elasticsearch builds will overwrite the postgres version
-    build_type = 'demo'
-    if single_data_master or elasticsearch:
-        build_type = 'es-nodes'
-    elif no_es:
-        build_type = 'frontend'
-    # Determine config build method
-    if use_prebuilt_config:
-        # Read a prebuilt config file from local dir and use for deployment
+    branch = main_args.branch
+    cluster_name = main_args.cluster_name
+    conf_dir = main_args.conf_dir
+    diff_configs = main_args.diff_configs
+    es_elect = main_args.es_elect
+    es_wait = main_args.es_wait
+    postgres_version = main_args.postgres_version
+    save_config_name = main_args.save_config_name
+    use_prebuilt_config = main_args.use_prebuilt_config
+       
+    def _diff_configs(config_one, config_two):
+        results = list(
+            Differ().compare(
+                config_one.splitlines(keepends=True),
+                config_two.splitlines(keepends=True),
+            )
+        )
+        is_clean = True
+        for index, result in enumerate(results, 1):
+            if not result[0] == ' ':
+                print(index, result)
+                is_clean = False
+                break
+        return is_clean
+
+    def _get_prebuild_config_template():
         read_config_path = "{}/{}/{}.yml".format(
             conf_dir,
             'prebuilt-config-yamls',
             use_prebuilt_config
         )
-        prebuilt_config =  _read_file_as_utf8(read_config_path)
-        if prebuilt_config:
-            return prebuilt_config, None, build_type
-        return None, None, built_type
-    else:
-        # Build config from template using parts
+        return  _read_file_as_utf8(read_config_path)
+
+    def _build_config_template(build_type):
         template_path = "{}/{}/{}.yml".format(conf_dir, 'config-build-files', build_type)
-        pre_config_template = _read_file_as_utf8(template_path)
-        replace_vars = set(re.findall('\%\((.*)\)s', pre_config_template))
+        built_config_template = _read_file_as_utf8(template_path)
+        replace_vars = set(re.findall('\%\((.*)\)s', built_config_template))
         # Replace cc parts vars in template.  Run vars are in cc-parts.
         template_parts_dir = "{}/{}/{}".format(conf_dir, 'config-build-files', 'cc-parts')
         cc_parts_insert = {}
@@ -397,57 +390,90 @@ def _get_cloud_config_yaml(
             )
             replace_var_data = _read_file_as_utf8(replace_var_path).strip()
             cc_parts_insert[replace_var_filename] = replace_var_data
-        config_template = pre_config_template % cc_parts_insert
-        write_file_path = None
-        if save_config_name:
-            # Having write_file_path set will not deploy
-            # After creating a new config rerun
-            #  with use_prebuilt_config=subpath/config_name
-            config_name = "{}-{}".format(save_config_name, build_type)
-            write_file_path = "{}/{}/{}.yml".format(
-                conf_dir,
-                'prebuilt-config-yamls',
-                config_name,
-            )
-        return config_template, write_file_path, build_type
+        return built_config_template % cc_parts_insert
 
+    # Incompatibile build arguments
+    if postgres_version and postgres_version not in ['9.3']:
+        print("Error: postgres_version must be '9.3'")
+        return None, None, None
+    if (es_elect or es_wait) and not cluster_name:
+        print('Error: --cluster-name required for --es-wait and --es-elect')
+        return None, None, None
+    if diff_configs and not use_prebuilt_config:
+        print('Error: --diff-configs must have --use-prebuilt-config config to diff against')
+        return None, None, None
+    # Determine type of build from arguments
+    # - es-nodes builds will overwrite the postgres version
+    build_type = 'demo'
+    if es_elect or es_wait:
+        build_type = 'es-nodes'
+    elif cluster_name:
+        build_type = 'frontend'
+    # Determine config build method
+    if use_prebuilt_config and not diff_configs:
+        # Read a prebuilt config file from local dir and use for deployment
+        prebuilt_config_template =  _get_prebuild_config_template()
+        if prebuilt_config_template:
+            return prebuilt_config_template, None, build_type
+        return None, None, built_type
+    # Build config from template using cc-parts
+    config_template = _build_config_template(build_type)
+    if diff_configs:
+        # Read a prebuilt config file from local dir and use for deployment
+        prebuilt_config_template =  _get_prebuild_config_template()
+        print('Diffing')
+        _diff_configs(config_template, prebuilt_config_template) 
+        print('Diff Done')
+        return None, None, None
+    elif save_config_name:
+        # Having write_file_path set will not deploy
+        # After creating a new config rerun
+        #  with use_prebuilt_config=subpath/config_name
+        config_name = "{}-{}".format(save_config_name, build_type)
+        write_file_path = "{}/{}/{}.yml".format(
+            conf_dir,
+            'prebuilt-config-yamls',
+            config_name,
+        )
+        return config_template, write_file_path, build_type
+    return config_template, None, build_type
+
+
+def _write_config_to_file(build_config, build_path, build_type):
+    print("    * Made       Prebuild: ${}".format(' '.join(sys.argv)))
+    print("        # Wrote new config to %s" % build_path)
+    deployment_args = []
+    # Clean sys args of --save-config-name and parameter
+    config_name = ''
+    for index, arg in enumerate(sys.argv):
+        if arg == '--save-config-name':
+            config_name = sys.argv[index+1]
+            deployment_args.extend(sys.argv[index+2:])
+            break
+        deployment_args.append(arg)
+    deploy_cmd = ' '.join(deployment_args)
+    prebuild = "--use-prebuilt-config {}-{}".format(config_name, build_type)
+    print("    * Diff Build/Prebuild: ${} {} --diff-configs".format(deploy_cmd, prebuild))
+    es_ip_arg = '--es-ip $HEADNODEIP' if build_type == 'frontend' else ''
+    if es_ip_arg:
+        deploy_cmd += ' ' + es_ip_arg
+    print("    * Deploy     Prebuild: ${} {}".format(deploy_cmd, prebuild))
+    print("    * Deploy        Build: ${}".format(deploy_cmd))
+    _write_str_to_file(build_path, build_config)
 
 
 def main():
-    # Gather Info
     main_args = parse_args()
-
-    # Create config file
-    cloud_config_args = {
-        'branch': main_args.branch,
-        'cluster_name': main_args.cluster_name,
-        'conf_dir': main_args.conf_dir,
-        'elasticsearch': main_args.elasticsearch,
-        'no_es': main_args.no_es,
-        'postgres_version': main_args.postgres_version,
-        'save_config_name': main_args.save_config_name,
-        'single_data_master': main_args.single_data_master,
-        'use_prebuilt_config': main_args.use_prebuilt_config,
-    }
-    build_config, build_path, build_type = _get_cloud_config_yaml(**cloud_config_args)
-    if not build_config:
-        print('Failure: Could not determine configuration type')
+    build_config, build_path, build_type = _get_cloud_config_yaml(main_args)
+    if not build_config or not build_type:
+        print('# Failure: Could not determine configuration type')
         sys.exit(1)
     if build_path:
-        # Data Node Cluster with self elected head node
-        # Build: bin/deploy -n tstcnf-data --cluster-name tstcnf-cluster --elasticsearch --save-config-name 20190930
-        # Deploy: bin/deploy -n tstcnf-data --cluster-name tstcnf-cluster --elasticsearch --use-prebuilt-config 20190930-es-nodes 
-
-
-        print("Wrote new config to %s" % build_path)
-        _write_str_to_file(build_path, build_config)
+        _write_config_to_file(build_config, build_path, build_type)
         sys.exit(0)
-    elif main_args.dry_run_cc:
-        print(build_config)
-        print('^^ config that would be used')
-        sys.exit(0)
+    # Deploy Frontend, Demo, es elect cluster, or es wait data nodes
     print('# Deploying %s' % build_type)
-    print("# {}".format(' '.join(sys.argv)))
+    print("# $ {}".format(' '.join(sys.argv)))
     instances_tag_data = _get_instances_tag_data(main_args)
     if instances_tag_data is None:
         sys.exit(10)
@@ -455,14 +481,9 @@ def main():
     if ec2_client is None:
         sys.exit(20)
     run_args = _get_run_args(main_args, instances_tag_data, build_config)
-    if main_args.dry_run_aws:
-        print('Dry Run AWS')
-        print('main_args', main_args)
-        print('run_args', run_args.keys())
-        print('Dry Run AWS')
-        sys.exit(30)
-    # Deploy Frontend, Demo, es elect cluster, or es wait data nodes
     bdm = _get_bdm(main_args)
+    # Create aws demo instance or frontend instance
+    # OR instances for es_wait nodes, es_elect nodes depending on count
     instances = ec2_client.create_instances(
         ImageId=main_args.image_id,
         MinCount=run_args['count'],
@@ -482,34 +503,34 @@ def main():
     output_list = _wait_and_tag_instances(main_args, run_args, instances_tag_data, instances)
     for output in output_list:
         print(output)
-    # Deploy ES master after es wait data nodes
-    if 'master_user_data' in run_args and main_args.single_data_master:
-        if run_args['master_user_data'] and run_args['count'] > 1 and main_args.elasticsearch:
-            instances = ec2_client.create_instances(
-                ImageId='ami-2133bc59',
-                MinCount=1,
-                MaxCount=1,
-                InstanceType='c5.9xlarge',
-                SecurityGroups=['ssh-http-https'],
-                UserData=run_args['master_user_data'],
-                BlockDeviceMappings=bdm,
-                InstanceInitiatedShutdownBehavior='terminate',
-                IamInstanceProfile={
-                    "Name": main_args.iam_role,
-                },
-                Placement={
-                    'AvailabilityZone': main_args.availability_zone,
-                },
-            )
-            output_list = _wait_and_tag_instances(
-                main_args, 
-                run_args, 
-                instances_tag_data, 
-                instances, 
-                cluster_master=True,
-            )
-            for output in output_list:
-                print(output)
+    output_list = []
+    # Create aws es_wait frontend instance
+    if main_args.es_wait and run_args.get('master_user_data'):
+        instances = ec2_client.create_instances(
+            ImageId='ami-2133bc59',
+            MinCount=1,
+            MaxCount=1,
+            InstanceType='c5.9xlarge',
+            SecurityGroups=['ssh-http-https'],
+            UserData=run_args['master_user_data'],
+            BlockDeviceMappings=bdm,
+            InstanceInitiatedShutdownBehavior='terminate',
+            IamInstanceProfile={
+                "Name": main_args.iam_role,
+            },
+            Placement={
+                'AvailabilityZone': main_args.availability_zone,
+            },
+        )
+        output_list = _wait_and_tag_instances(
+            main_args, 
+            run_args, 
+            instances_tag_data, 
+            instances, 
+            cluster_master=True,
+        )
+        for output in output_list:
+            print(output)
 
 
 def parse_args():
@@ -571,8 +592,7 @@ def parse_args():
     
     # User Data Yamls
     parser.add_argument('--conf-dir', default='./cloud-config', help="Location of cloud build config")
-    parser.add_argument('--dry-run-aws', action='store_true', help="Abort before ec2 requests.")
-    parser.add_argument('--dry-run-cc', action='store_true', help="Abort after building cloud config.")
+    parser.add_argument('--diff-configs', action='store_true', help="Diff new build config against prebuilt.")
     parser.add_argument(
         '--save-config-name', 
         default=None,
@@ -606,14 +626,13 @@ def parse_args():
     )
     
     # Cluster
-    parser.add_argument('--single-data-master', action='store_true',
-            help="Create a single data master node.")
-    parser.add_argument('--cluster-name', default=None, help="Name of the cluster")
+    parser.add_argument('--es-elect', action='store_true', help="Create es nodes electing head node.")
+    parser.add_argument('--es-wait', action='store_true', help="Create es nodes and head node.")
+    parser.add_argument('--cluster-name', default=None, type=hostname, help="Name of the cluster")
     parser.add_argument('--cluster-size', default=5, help="Elasticsearch cluster size")
     parser.add_argument('--elasticsearch', action='store_true', help="Launch an Elasticsearch cluster")
     parser.add_argument('--es-ip', default='localhost', help="ES Master ip address")
     parser.add_argument('--es-port', default='9201', help="ES Master ip port")
-    parser.add_argument('--no-es', action='store_true', help="Use non ES cloud condfig")
     parser.add_argument('--jvm-gigs', default='8', help="JVM Xms and Xmx gigs")
   
     # Database
@@ -664,6 +683,13 @@ def parse_args():
                 args.instance_type = 'c5.9xlarge'
         else:
             args.instance_type = 'c5.9xlarge'
+    # Check cluster name overrides name
+    if args.cluster_name:
+        cluster_tag = '-cluster'
+        args.name = args.cluster_name.replace(cluster_tag, '')
+        args.cluster_name = args.name + cluster_tag
+    if args.es_wait and args.es_elect:
+        raise ValueError('--es-wait and --es-elect cannot be used in the same command')
     # Set Role
     # - 'demo' role is default for making single or clustered
     # applications for feature building
