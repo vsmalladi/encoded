@@ -7,6 +7,10 @@
 
 S3_AUTH_KEYS=$1
 
+script_name="$(basename $0)"
+echo "****START-ENCD-INFO($script_name)****"
+echo -e "\tS3_AUTH_KEYS=$S3_AUTH_KEYS"
+
 # Add team ssh public keys from s3
 mv /home/ubuntu/.ssh/authorized_keys /home/ubuntu/.ssh/authorized_keys2
 aws s3 cp --region=us-west-2 $S3_AUTH_KEYS /home/ubuntu/.ssh/authorized_keys
@@ -16,3 +20,4 @@ aws s3 cp --region=us-west-2 --recursive s3://encoded-conf-prod/pg-aws-keys /hom
 # Downlaod encoded demo aws keys
 mkdir /home/ubuntu/encd-aws-keys
 aws s3 cp --region=us-west-2 --recursive s3://encoded-conf-prod/encd-aws-keys /home/ubuntu/encd-aws-keys
+echo "****END-ENCD-INFO($script_name)****"

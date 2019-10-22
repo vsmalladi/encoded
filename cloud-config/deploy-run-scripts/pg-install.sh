@@ -10,10 +10,34 @@
 
 
 ### Arguments
-standby_mode="$1"
-ROLE="$2"
-WALE_S3_PREFIX="$3"
-PG_VERSION="$4"
+ROLE="$1"
+WALE_S3_PREFIX="$2"
+PG_VERSION="$3"
+PG_OPEN="$4"
+PG_IP="$5"
+
+script_name="$(basename $0)"
+echo "****START-ENCD-INFO($script_name)****"
+echo -e "\tROLE=$ROLE"
+echo -e "\tWALE_S3_PREFIX=$WALE_S3_PREFIX"
+echo -e "\tPG_VERSION=$PG_VERSION"
+echo -e "\tPG_OPEN=$PG_OPEN"
+echo -e "\tPG_IP=$PG_IP"
+
+if [ "$PG_IP" == 'none' ]; then
+    echo 'INFO: PG_IP is none.  Setting up postgres and wal-e backups'
+else
+    echo "INFO: PG_IP='$PG_IP'. Skipping postgres and wal-e backup setup"
+    echo -e "\tPostgres/psql is installed from CC_PACKAGES already"
+    exit 0
+fi
+
+
+standby_mode='off'
+if [ "$ROLE" == 'candidate' ]; then
+    standby_mode='on'
+fi
+
 python_version=0
 if [ "$PG_VERSION" == '9.3' ]; then
     python_version=2
@@ -23,7 +47,7 @@ if [ "$PG_VERSION" == '11' ]; then
     python_version=3
 fi
 if [ $python_version -eq 0 ]; then
-    echo 'INSTALL FAILURE(pg-install.sh): Postgres version $PG_VERSION is unknown'
+    echo "INSTALL FAILURE(pg-install.sh): Postgres version $PG_VERSION is unknown"
     exit 1
 fi
 pg_version="$(echo $PG_VERSION | sed 's/\.//g')"
@@ -143,14 +167,17 @@ append_with_user "$standby_mode_cmd" 'postgres' "$PG_CONF_DEST/recovery.conf"
 # Set db to recovery mode
 sudo -u postgres ln -s "$PG_CONF_DEST/recovery.conf" "$PG_DATA/"
 
-## pg conf postgresql.conf
+## pg conf postgresql.conf/pg_hba.conf
 include_custom="include 'custom.conf'"
 append_with_user "$include_custom" 'postgres' "$PG_CONF_DEST/postgresql.conf"
 if [ ! "$ROLE" == 'candidate' ]; then
   include_demo="include 'demo.conf'"
   append_with_user "$include_demo" 'postgres' "$PG_CONF_DEST/postgresql.conf"
 fi
-
+if [ "$PG_OPEN" == 'true' ]; then
+  append_with_user "listen_addresses = '*'" 'postgres' "$PG_CONF_DEST/postgresql.conf"
+  append_with_user "host all all 0.0.0.0/0 trust" 'postgres' "$PG_CONF_DEST/pg_hba.conf"
+fi
 
 ### Create db
 sudo -u postgres createuser encoded
@@ -213,3 +240,4 @@ until sudo -u postgres psql postgres -c ""; do
         exit 123
     fi
 done
+echo "****END-ENCD-INFO($script_name)****"

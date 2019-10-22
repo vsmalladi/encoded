@@ -14,3 +14,5 @@ thread_pool:
     queue_size: 2000
   index:
     queue_size: 400
+
+# PG_OPEN deployments will append below

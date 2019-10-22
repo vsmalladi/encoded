@@ -234,6 +234,8 @@ def _get_run_args(main_args, instances_tag_data, config_yaml):
             'ES_PORT': main_args.es_port,
             'GIT_BRANCH': main_args.branch,
             'GIT_REPO': main_args.git_repo,
+            'PG_IP': main_args.pg_ip,
+            'PG_OPEN': 'true' if main_args.pg_open else 'false',
             'PG_VERSION': main_args.postgres_version,
             'REDIS_IP': main_args.redis_ip,
             'REDIS_PORT': main_args.redis_port,
@@ -646,6 +648,8 @@ def parse_args():
   
     # Database
     parser.add_argument('--postgres-version', default='9.3', help="Postegres version. '9.3' or '11'")
+    parser.add_argument('--pg-ip', default='none', help="Skip pg install script, setup app to connect to remote ip.")
+    parser.add_argument('--pg-open', action='store_true', help="Allow connections on postgres post.")
     parser.add_argument('--redis-ip', default='localhost', help="Redis IP.")
     parser.add_argument('--redis-port', default=6379, help="Redis Port.")
     parser.add_argument('--wale-s3-prefix', default='s3://encoded-backups-prod/production')

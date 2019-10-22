@@ -3,6 +3,8 @@
 # root user
 # apt deps:
 
+script_name="$(basename $0)"
+echo "****START-ENCD-INFO($script_name)****"
 sudo sed -i -e 's/inet_interfaces = all/inet_interfaces = loopback-only/g' /etc/postfix/main.cf
 PUBLIC_DNS_NAME="$(curl http://169.254.169.254/latest/meta-data/public-hostname)"
 sudo sed -i "/myhostname/c\myhostname = $PUBLIC_DNS_NAME" /etc/postfix/main.cf
@@ -10,3 +12,4 @@ sudo echo "127.0.0.0 $PUBLIC_DNS_NAME" | sudo tee --append /etc/hosts
 sudo mv /etc/mailname /etc/mailname.OLD
 sudo echo "$PUBLIC_DNS_NAME" | sudo tee --append /etc/mailname
 sudo service postfix restart
+echo "****END-ENCD-INFO($script_name)****"
