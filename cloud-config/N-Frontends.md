@@ -1,10 +1,11 @@
 # N-Frontends Notes
+* AFter updating to pg11...shoud make a es cluster for host
 
-## Working: 20191028 after rebasing per v92rc1
+## Working: 20191105 after rebasing per v92.0
 * build a pg/es open host demo
-    * bin/deploy -n pgopenhd --pg-open
+    * bin/deploy -n host-dev --pg-open
 * build a client demo with es-ip and pg-ip for pgopenhd. No indexing workers in apache conf.
-    * bin/deploy -n pgopencd --es-ip 172.31.28.178 --pg-ip 172.31.28.178
+    * bin/deploy -n client-1-dev --es-ip 172.31.28.178 --pg-ip 172.31.28.178
 
 ## Notes
 ### Check psql connections
