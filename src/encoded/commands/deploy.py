@@ -156,8 +156,9 @@ def _get_instances_tag_data(main_args):
         ['git', 'tag', '--contains', instances_tag_data['commit']]
     ).strip().decode()
     if tag_output:
-        if tag_output == main_args.branch:
-            is_tag = True
+        for matching_tag in tag_output.split('\n'):
+            if matching_tag == main_args.branch:
+                is_tag = True
     is_branch = False
     if subprocess.check_output(
             ['git', 'branch', '-r', '--contains', instances_tag_data['commit']]
