@@ -1,5 +1,9 @@
 ## Changelog for annotation.json
 
+### Schema version 28
+
+* Remove enum *stage* from *relevant_timepoint* property.
+
 ### Minor changes since schema version 27
 * Added ENCODE v6 to the list of enums within *encyclopedia_version* property.
 

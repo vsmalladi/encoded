@@ -578,3 +578,12 @@ def dataset_28_29(value, system):
         value.pop('dbxrefs', None)
     else:
         value['dbxrefs'] = sorted(new_dbxrefs)
+
+@upgrade_step('annotation', '27', '28')
+def annotation_27_28(value, system):
+    # https://encodedcc.atlassian.net/browse/ENCD-4438
+    units = value.get('relevant_timepoint_units')
+    if units == 'stage':
+        value.pop('relevant_timepoint', None)
+        value.pop('relevant_timepoint_units', None)
+    return

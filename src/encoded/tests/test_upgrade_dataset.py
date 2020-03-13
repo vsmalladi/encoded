@@ -334,6 +334,17 @@ def reference_epigenome_16(award, lab):
     }
 
 
+@pytest.fixture
+def annotation_27(award, lab):
+    return {
+        'award': award['@id'],
+        'lab': lab['@id'],
+        'schema_version': '27',
+        'relevant_timepoint': '3',
+        'relevant_timepoint_units': 'stage'
+    }
+
+
 def test_experiment_upgrade(root, upgrader, experiment, experiment_1, file_ucsc_browser_composite, threadlocals, dummy_request):
     context = root.get_by_uuid(experiment['uuid'])
     dummy_request.context = context
@@ -721,3 +732,10 @@ def test_upgrade_reference_17_to_18(upgrader, dataset_reference_1, dataset_refer
     assert value['schema_version'] == '18'
     assert 'dbxrefs' not in value
     assert 'IHEC:IHECRE00004703' in value['notes']
+
+def test_upgrade_annotation_27_to_28(upgrader, annotation_27):
+    value = upgrader.upgrade(
+        'annotation', annotation_27, current_version='27', target_version='28'
+    )
+    assert 'relevant_timepoint' not in value
+    assert 'relevant_timepoint_units' not in value
