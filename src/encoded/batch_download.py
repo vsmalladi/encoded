@@ -389,7 +389,8 @@ def metadata_tsv(context, request):
         else:
             param_list['@id'] = elements
     default_params = [
-        ('limit', 'all')
+        ('field', 'audit'),
+        ('limit', 'all'),
     ]
     field_params = [
         ('field', p)
