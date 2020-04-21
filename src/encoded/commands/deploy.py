@@ -263,7 +263,7 @@ def _get_ec2_client(main_args, instances_tag_data):
     ec2 = session.resource('ec2')
     name_to_check = instances_tag_data['name']
     if main_args.node_name:
-        if int(main_args.cluster_size) != 1:
+        if main_args.cluster_size != 1:
             print('--node-name can only be used --cluster-size 1')
             return None
         name_to_check = main_args.node_name
@@ -308,7 +308,7 @@ def _get_run_args(main_args, instances_tag_data, config_yaml, is_tag=False):
     }
     if main_args.es_wait or main_args.es_elect:
         # Data node clusters
-        count = int(main_args.cluster_size)
+        count = main_args.cluster_size
         security_groups = ['elasticsearch-https']
         iam_role = main_args.iam_role_es
         es_opt = 'es-cluster-wait.yml' if main_args.es_wait else 'es-cluster-elect.yml'
@@ -834,7 +834,7 @@ def _parse_args():
     )
     parser.add_argument('--es-wait', action='store_true', help="Create es nodes and head node.")
     parser.add_argument('--cluster-name', default=None, type=hostname, help="Name of the cluster")
-    parser.add_argument('--cluster-size', default=5, help="Elasticsearch cluster size")
+    parser.add_argument('--cluster-size', default=5, type=int, help="Elasticsearch cluster size")
     parser.add_argument('--es-ip', default='localhost', help="ES Master ip address")
     parser.add_argument('--es-port', default='9201', help="ES Master ip port")
     parser.add_argument(
@@ -974,7 +974,7 @@ def _parse_args():
         args.name = args.cluster_name.replace(cluster_tag, '')
         args.cluster_name = args.name + cluster_tag
         # adding a single node to a pre existing cluster
-        if args.node_name and int(args.cluster_size) != 1:
+        if args.node_name and args.cluster_size != 1:
             raise ValueError(
                 'Adding a node to a preexisting cluster. '
                 '--cluster-size must be 1.'
@@ -983,7 +983,7 @@ def _parse_args():
         # hard coded discovery size in es-cluster-elect.yml
         if (
                 args.node_name is None and args.es_elect and (
-                    int(args.cluster_size) < 4 or int(args.cluster_size) > 5
+                    args.cluster_size < 4 or args.cluster_size > 5
                 )
         ):
             raise ValueError(
