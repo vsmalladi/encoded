@@ -3,7 +3,7 @@
 # For details see
 # -defaults/encoded-jvm.options.20190930
 # -defaults/default-jvm.options.20190930
-#
+# test trace jvm-options
 ## 
 
 # Standard default jvm.options as of 20190930
