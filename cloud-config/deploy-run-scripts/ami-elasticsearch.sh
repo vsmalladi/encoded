@@ -8,6 +8,11 @@ if [ -f "$encd_failed_flag" ]; then
     echo -e "\n\t$ENCD_INSTALL_TAG $(basename $0) Skipping: encd_failed_flag exits"
     exit 1
 fi
+
+# Check if full build and set do install flag
+if [ "$ENCD_FULL_BUILD" == 'True' ]; then
+    touch "$encd_do_install_flag"
+fi
 if [ "$ENCD_BUILD_TYPE" == 'encd-es-build' ]; then
     if [ ! -f "$encd_do_install_flag" ]; then
         echo -e "\n\t$ENCD_INSTALL_TAG $(basename $0) Skipping ES AMI build. Set do install flag"
