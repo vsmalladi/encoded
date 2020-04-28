@@ -16,6 +16,7 @@ PG_URI='postgresql:///encoded'
 if [ "$ENCD_BUILD_TYPE" == 'encd-no-pg-build' ]; then
     PG_URI="postgresql://$ENCD_PG_IP/encoded"
 fi
+echo -e "\n\t$ENCD_INSTALL_TAG $(basename $0) ENCD PG_URI: $PG_URI"
 
 # Install App
 cd "$ENCD_HOME"
@@ -49,6 +50,17 @@ fi
 some_other_bin_path="$ENCD_HOME/bin/batchupgrade"
 if [ ! -f "$some_other_bin_path" ]; then
     echo -e "\n\t$ENCD_INSTALL_TAG $(basename $0) ENCD FAILED: bin commands do not exist"
+    # Build has failed
+    touch "$encd_failed_flag"
+    exit 1
+fi
+
+# Downlaod encoded demo aws keys
+encd_keys_dir=/home/ubuntu/encd-aws-keys
+mkdir "$encd_keys_dir"
+aws s3 cp --region=us-west-2 --recursive s3://encoded-conf-prod/encd-aws-keys "$encd_keys_dir"
+if [ ! -f "$encd_keys_dir/credentials" ]; then
+    echo -e "\n\t$ENCD_INSTALL_TAG $(basename $0) ENCD FAILED: ubuntu home encd aws creds"
     # Build has failed
     touch "$encd_failed_flag"
     exit 1

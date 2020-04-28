@@ -2,7 +2,51 @@ Organization deployment configuration and build files
 =====================================================
 
 
-## Example commands
+## Summary
+#### Templates are assembled into deployment yamls with ./template-parts
+    # Standard
+    Demo/QA Demo: app-es-pg-template.yml
+    Cluster Frontend: app-pg-template.yml
+    Cluster Elasticsearch: es-nodes-template.yml
+    # Non Standard
+    Instance with remote pg: app-es-template.yml
+    Instance with remote pg/es: app-template.yml
+#### Directories:
+    template-parts: Pieces of the templates
+    run-scripts: Shell install scripts. Usually called from runcmd_* template parts but can also be 
+        used directly in a template.
+    configs: Configuration files used in run-scripts
+    built-ymls: Saved, assembled templates.  Still contains run variables to be filled in.
+#### Other
+    create-ami.py: Helpers script to create amis in AWS
+
+
+## Examples with bin/deploy
+    The deploy script will assembled a template based on input args
+    Demo: No args will use a demo
+
+#### QA/Developmnet Demo: app-es-pg-template
+    $ bin/deploy --dry-run
+    # Deploying app-es-pg
+    # $ bin/deploy --dry-run
+    # run_args: dict_keys(['count', 'iam_role', 'master_user_data', 'user_data', 'security_groups', 'key-pair-name'])
+    # instances_tag_data {'branch': 'branch-name', 'commit': 'commit-sha', 
+        'short_name': 'encd-####', 'name': 'encd-####-commit-sha', 'username': 'your-name'}
+    # is_tag: False, is_branch: True
+    # Dry Run
+
+    bin/deploy
+
+
+#### Demo Cluster: es-nodes-template.yml and app-pg-template
+    $ bin/deploy --dry-run --cluster-name somename --es-elect
+    # Deploying es-nodes
+    # $ bin/deploy --dry-run --cluster-name somename --es-elect
+
+    $ bin/deploy --dry-run --cluster-name somename --es-ip 1.2.3.4
+    # Deploying app-pg
+    # $ bin/deploy --dry-run --cluster-name somename --es-ip 1.2.3.4
+
 
 # Deploy with ubuntu 18 base ami
     ```
@@ -91,3 +135,5 @@ Organization deployment configuration and build files
     export es_ip='172.31.23.141'
     bin/deploy -b $branch_name -n 5121-test-demo --es-ip $es_ip --full-build
     ```
+
+
