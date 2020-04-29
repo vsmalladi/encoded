@@ -926,13 +926,18 @@ def _parse_args():
     }
     if not args.image_id:
         # Select ami by build type.  
-        if args.build_ami or args.full_build:
+        if args.build_ami:
             # Building new amis or making full builds from scratch
             # should start from base ubutnu image
             args.image_id = ami_map['default']
             args.eshead_image_id = ami_map['default']
             # We only need one es node to make an ami
             args.cluster_size = 1
+        elif args.full_build:
+            # Full builds from scratch
+            # should start from base ubutnu image
+            args.image_id = ami_map['default']
+            args.eshead_image_id = ami_map['default']
         elif args.cluster_name:
             # Cluster builds have three prebuilt priviate amis
             if args.es_wait:
