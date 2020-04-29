@@ -16,6 +16,10 @@ PG_URI='postgresql:///encoded'
 if [ "$ENCD_BUILD_TYPE" == 'encd-no-pg-build' ]; then
     PG_URI="postgresql://$ENCD_PG_IP/encoded"
 fi
+if [ "$ENCD_PG_RDS" == 'true' ]; then
+    # postgresql://user:pass@host/database
+    PG_URI="postgresql://encoded:password@$ENCD_PG_IP/encoded"
+fi
 echo -e "\n\t$ENCD_INSTALL_TAG $(basename $0) ENCD PG_URI: $PG_URI"
 
 # Install App

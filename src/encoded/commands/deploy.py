@@ -893,6 +893,7 @@ def _parse_args():
     parser.add_argument('--postgres-version', default='11', help="Postegres version. '9.3' or '11'")
     parser.add_argument('--pg-open', action='store_true', help="Allow all connections on postgres post.")
     parser.add_argument('--pg-ip', default='', help="Skip pg install script, setup app to connect to remote ip.")
+    parser.add_argument('--pg-rds', action='store_true', help="Postgresql is AWS rds url")
     parser.add_argument('--redis-ip', default='localhost', help="Redis IP.")
     parser.add_argument('--redis-port', default=6379, help="Redis Port.")
     parser.add_argument('--wale-s3-prefix', default='s3://encoded-backups-prod/production-pg11')
