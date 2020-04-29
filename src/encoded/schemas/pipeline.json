@@ -197,6 +197,76 @@
             "comment": "Please increment as whole numbers starting from 1.",
             "type": "integer",
             "minimum": 1
+        },
+        "quality_metric_definitions": {
+            "title": "Quality metric definitions",
+            "type": "array",
+            "minItems": 1,
+            "permission": "import_items",
+            "items": {
+                "title": "Quality metric definition for one metric",
+                "type": "object",
+                "required": [
+                    "report_name",
+                    "file_filters",
+                    "quality_metric_filters",
+                    "quality_metric_name"
+                ],
+                "properties": {
+                    "report_name": {
+                        "title": "Quality report name",
+                        "type": "string"
+                    },
+                    "file_filters": {
+                        "title": "File filters",
+                        "type": "object",
+                        "additionalProperties": { "type": "string" }
+                    },
+                    "quality_metric_filters": {
+                        "title": "Quality metric object filters",
+                        "type": "object",
+                        "additionalProperties": { "type": "string" }
+                    },
+                    "quality_metric_name": {
+                        "title": "Quality metric name",
+                        "type": "string"
+                    },
+                    "standards": {
+                        "title": "Quality control standards",
+                        "type": "array",
+                        "items": {
+                            "title": "Quality control standard",
+                            "type": "object",
+                            "properties": {
+                                "standard_filters": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "oneOf": [
+                                            { "type": "string" },
+                                            {
+                                                "type": "array",
+                                                "items": { "type": "string" }
+                                            }
+                                        ]
+                                    }
+                                },
+                                "pass": {
+                                    "type": "number"
+                                },
+                                "warning": {
+                                    "type": "number"
+                                },
+                                "incompliant": {
+                                    "type": "number"
+                                },
+                                "error": {
+                                    "type": "number"
+                                }
+                            }
+                        }
+                    }
+                }
+            }            
         }
     },
     "facets": {

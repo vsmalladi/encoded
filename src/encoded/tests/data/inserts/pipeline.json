@@ -63,6 +63,28 @@
             "bam-to-bigwig-tophat-step-v-1",
             "bam-to-bigwig-star-step-v-1"
         ],
+        "quality_metric_definitions": [
+            {
+              "report_name": "Test alignments quality metric report",
+              "file_filters": { "output_type": "alignments" },
+              "quality_metric_filters": {
+                  "@type": "MicroRnaMappingQualityMetric"
+              },
+              "quality_metric_name": "aligned_reads",
+              "standards": [
+                  {
+                      "standard_filters": {
+                          "award_rfa": "ENCODE3",
+                          "target": ["test_target"]
+                      },
+                      "pass": 1,
+                      "warning": 2,
+                      "incompliant": 3,
+                      "error": 4
+                  }
+              ]
+            }
+        ],
         "status": "released"
     },
     {

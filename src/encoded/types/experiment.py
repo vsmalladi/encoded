@@ -27,6 +27,67 @@ from .shared_calculated_properties import (
 
 from .assay_data import assay_terms
 
+
+def report_quality_metric(request, file_objects, quality_metric_definition):
+    quality_metrics_report = {quality_metric_definition['report_name']: []}
+    for f_obj in file_objects:
+        if any(
+            (
+                f_obj[k] != quality_metric_definition['file_filters'][k]
+                and quality_metric_definition['file_filters'][k] not in f_obj[k]
+            )
+            for k in quality_metric_definition['file_filters']
+        ):
+            continue
+        for qm in f_obj.get('quality_metrics', []):
+            qm_obj = request.embed(qm, '@@object')
+            if any(
+                (
+                    qm_obj[k] != quality_metric_definition['quality_metric_filters'][k]
+                    and quality_metric_definition['quality_metric_filters'][k] not in qm_obj[k]
+                )
+                for k in quality_metric_definition['quality_metric_filters']
+            ):
+                continue
+            qm_value = qm_obj[quality_metric_definition['quality_metric_name']]
+            quality_metrics_report[
+                quality_metric_definition['report_name']
+            ].append(qm_value)
+        # The following two lines are for test only
+        f_obj['award_rfa'] = request.embed(f_obj['award'], '@@object')['rfa']
+        f_obj['target'] = 'test_target'
+        quality = []
+        for standard in quality_metric_definition.get('standards', []):
+            if any(
+                (
+                    f_obj[k] != standard['standard_filters'][k]
+                    and f_obj[k] not in standard['standard_filters'][k]
+                )
+                for k in standard['standard_filters']
+            ):
+                continue
+            for v in quality_metrics_report[
+                quality_metric_definition['report_name']
+            ]:
+                # The following order matters and depends a lot on the schema
+                # definition. This might not be a good coding practice and
+                # and to be improved.
+                for level in [
+                    'pass',
+                    'warning',
+                    'not_compliant',
+                    'error',
+                ]:
+                    if v > standard[level]:
+                        quality.append(level)
+                        break
+        if quality:
+            quality_metrics_report[
+                quality_metric_definition['report_name'] + '_quality'
+            ] = quality
+    return quality_metrics_report
+
+
 @collection(
     name='experiments',
     unique_key='accession',
@@ -265,18 +326,20 @@ class Experiment(Dataset,
     # Don't specify schema as this just overwrites the existing value
     @calculated_property(condition='analyses')
     def analyses(self, request, analyses):
-        updated_analyses = []
         for analysis in analyses:
             assemblies = set()
             genome_annotations = set()
             pipelines = set()
             pipeline_award_rfas = set()
             pipeline_labs = set()
+            selected_pipeline = {}
+            file_objects = []
             for f in analysis.get('files', []):
                 file_object = request.embed(
                     f,
-                    '@@object_with_select_calculated_properties?field=analysis_step_version'
+                    '@@object_with_select_calculated_properties?field=analysis_step_version&field=quality_metrics'
                 )
+                file_objects.append(file_object)
                 if 'assembly' in file_object:
                     assemblies.add(file_object['assembly'])
                 if 'genome_annotation' in file_object:
@@ -292,11 +355,12 @@ class Experiment(Dataset,
                             '@@object_with_select_calculated_properties?field=pipelines'
                         ).get('pipelines', [])
                     )
-                    for pipeline in pipelines:
+                    for pipeline in sorted(pipelines):
                         pipeline_object = request.embed(
                             pipeline,
                             '@@object?skip_calculated=true'
                         )
+                        selected_pipeline = pipeline_object
                         pipeline_award_rfas.add(
                             request.embed(
                                 pipeline_object['award'],
@@ -309,7 +373,19 @@ class Experiment(Dataset,
             analysis['pipelines'] = sorted(pipelines)
             analysis['pipeline_award_rfas'] = sorted(pipeline_award_rfas)
             analysis['pipeline_labs'] = sorted(pipeline_labs)
-            updated_analyses.append(analysis)
+            quality_metrics_report = {}
+            qm_defs = selected_pipeline.get(
+                'quality_metric_definitions', []
+            )
+            for qm_def in qm_defs:
+                quality_metrics_report.update(
+                    report_quality_metric(
+                        request=request,
+                        file_objects=file_objects,
+                        quality_metric_definition=qm_def,
+                    )
+                )
+            analysis['quality_metrics_report'] = quality_metrics_report
         return analyses
 
     matrix = {
