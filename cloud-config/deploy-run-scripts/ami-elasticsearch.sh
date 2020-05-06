@@ -72,7 +72,7 @@ sudo chown -R elasticsearch:elasticsearch /var/log/elasticsearch/
 sudo usermod -a -G elasticsearch ubuntu
 
 # Install discovery for clusters, maybe only needed for clusters
-sudo /usr/share/elasticsearch/bin/elasticsearch-plugin install discovery-ec2
+yes | sudo /usr/share/elasticsearch/bin/elasticsearch-plugin install discovery-ec2
 # Add es service and start
 sudo /bin/systemctl enable elasticsearch.service
 sudo systemctl start elasticsearch.service
