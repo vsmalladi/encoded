@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import url from 'url';
 import { FetchedData, Param } from './fetched';
 import { BrowserFeat } from './browserfeat';
 import { filterForVisualizableFiles } from './objectutils';
@@ -147,29 +146,65 @@ function mapGenome(inputAssembly) {
 /**
  * Display a label for a file’s track.
  */
-const TrackLabel = ({ file, long }) => {
-    const biologicalReplicates = file.biological_replicates && file.biological_replicates.join(',');
+const TrackLabel = ({ file, label, long }) => {
+    console.log(label);
+    const biologicalReplicates = file.biological_replicates && file.biological_replicates.join(', ');
+    console.log(biologicalReplicates);
     return (
         <React.Fragment>
-            <a href={file['@id']} className="gb-accession">{file.accession}<span className="sr-only">{`Details for file ${file.accession}`}</span></a>
-            <ul className="gb-info">
-                {file.biosample_ontology && file.biosample_ontology.term_name ? <li>{file.biosample_ontology.term_name}</li> : null}
-                {file.target ? <li>{file.target.label}</li> : null}
-                {file.assay_term_name ? <li>{file.assay_term_name}</li> : null}
-                {long ?
-                    <React.Fragment>
-                        <li>{file.output_type}</li>
-                        {(biologicalReplicates !== '') ? <li>{`rep ${biologicalReplicates}`}</li> : null}
-                    </React.Fragment>
-                : null}
-            </ul>
+            {(label === 'cart') ?
+                <ul className="gb-info">
+                    {file.target ? <span>{file.target.label}, </span> : null}
+                    {file.assay_term_name ? <span>{file.assay_term_name}, </span> : null}
+                    {file.biosample_ontology && file.biosample_ontology.term_name ? <span>{file.biosample_ontology.term_name}</span> : null}
+                    {long ?
+                        <React.Fragment>
+                            <li><a href={file['@id']} className="gb-accession">{file.accession}<span className="sr-only">{`Details for file ${file.accession}`}</span></a></li>
+                            <li>{file.output_type}</li>
+                            <li>{`rep ${biologicalReplicates}`}</li>
+                        </React.Fragment>
+                    : null}
+                </ul>
+            :
+                <ul className="gb-info">
+                    <li>
+                        <a href={file['@id']} className="gb-accession">{file.accession}<span className="sr-only">{`Details for file ${file.accession}`}</span></a>
+                        {(biologicalReplicates !== '') ? <span>{` (rep ${biologicalReplicates})`}</span> : null}
+                    </li>
+                    {long ?
+                        <React.Fragment>
+                            {file.biosample_ontology && file.biosample_ontology.term_name ? <li>{file.biosample_ontology.term_name}</li> : null}
+                            {file.target ? <li>{file.target.label}</li> : null}
+                            {file.assay_term_name ? <li>{file.assay_term_name}</li> : null}
+                            <li>{file.output_type}</li>
+                        </React.Fragment>
+                    : null}
+                </ul>
+            }
         </React.Fragment>
     );
 };
 
+// <a href={file['@id']} className="gb-accession">{file.accession}<span className="sr-only">{`Details for file ${file.accession}`}</span></a>
+// {!short ?
+//     <ul className="gb-info">
+//         {file.biosample_ontology && file.biosample_ontology.term_name ? <li>{file.biosample_ontology.term_name}</li> : null}
+//         {file.target ? <li>{file.target.label}</li> : null}
+//         {file.assay_term_name ? <li>{file.assay_term_name}</li> : null}
+//         {long ?
+//             <React.Fragment>
+//                 <li>{file.output_type}</li>
+//                 {(biologicalReplicates !== '') ? <li>{`rep ${biologicalReplicates}`}</li> : null}
+//             </React.Fragment>
+//         : null}
+//     </ul>
+// : null}
+
 TrackLabel.propTypes = {
     /** File object being displayed in the track */
     file: PropTypes.object.isRequired,
+    /** Determines what label to display */
+    label: PropTypes.string.isRequired,
     /** True to generate a long version of the label */
     long: PropTypes.bool,
 };
@@ -264,7 +299,7 @@ class GenomeBrowser extends React.Component {
                 }
                 let tracks = [];
                 if (files.length > 0) {
-                    tracks = this.filesToTracks(newFiles, domain);
+                    tracks = this.filesToTracks(newFiles, this.props.label, domain);
                 }
                 this.setState({ trackList: tracks }, () => {
                     if (this.chartdisplay && tracks !== []) {
@@ -403,7 +438,7 @@ class GenomeBrowser extends React.Component {
             const domain = `${window.location.protocol}//${window.location.hostname}`;
             const files = this.compileFiles(domain);
             if (files.length > 0) {
-                const tracks = this.filesToTracks(files, domain);
+                const tracks = this.filesToTracks(files, this.props.label, domain);
                 this.setState({ trackList: tracks }, () => {
                     this.drawTracks(this.chartdisplay);
                 });
@@ -450,22 +485,24 @@ class GenomeBrowser extends React.Component {
         return newFiles;
     }
 
-    filesToTracks(files, domain) {
+    filesToTracks(files, label, domain) {
         const tracks = files.map((file) => {
             if (file.name) {
                 const trackObj = {};
                 trackObj.name = <i>{file.name}</i>;
                 trackObj.type = 'signal';
                 trackObj.path = file.href;
-                trackObj.heightPx = 80;
+                trackObj.heightPx = 32;
+                trackObj.expandedHeightPx = 140;
                 return trackObj;
             } else if (file.file_format === 'bigWig') {
                 const trackObj = {};
-                trackObj.name = <TrackLabel file={file} />;
-                trackObj.longname = <TrackLabel file={file} long />;
+                trackObj.name = <TrackLabel label={label} file={file} />;
+                trackObj.longname = <TrackLabel label={label} file={file} long />;
                 trackObj.type = 'signal';
                 trackObj.path = domain + file.href;
-                trackObj.heightPx = 80;
+                trackObj.heightPx = 32;
+                trackObj.expandedHeightPx = 140;
                 return trackObj;
             } else if (file.file_format === 'vdna-dir') {
                 const trackObj = {};
@@ -473,6 +510,7 @@ class GenomeBrowser extends React.Component {
                 trackObj.type = 'sequence';
                 trackObj.path = file.href;
                 trackObj.heightPx = 40;
+                trackObj.expandable = false;
                 return trackObj;
             } else if (file.file_format === 'vgenes-dir') {
                 const trackObj = {};
@@ -480,19 +518,26 @@ class GenomeBrowser extends React.Component {
                 trackObj.type = 'annotation';
                 trackObj.path = file.href;
                 trackObj.heightPx = 120;
+                trackObj.expandable = false;
+                trackObj.displayLabels = true;
                 return trackObj;
             }
             const trackObj = {};
-            trackObj.name = <TrackLabel file={file} />;
+            trackObj.name = <TrackLabel file={file} label={label} />;
+            trackObj.longname = <TrackLabel file={file} label={label} long />;
             trackObj.type = 'annotation';
             trackObj.path = domain + file.href;
+            trackObj.expandable = true;
+            trackObj.displayLabels = false;
+            trackObj.heightPx = 32;
+            trackObj.expandedHeightPx = 140;
             // bigBed bedRNAElements, bigBed peptideMapping, bigBed bedExonScore, bed12, and bed9 have two tracks and need extra height
             // Convert to lower case in case of inconsistency in the capitalization of the file format in the data
             if (file.file_format_type &&
-                (['bedrnaelements', 'peptidemapping', 'bedexonscore', 'bed12', 'bed9'].indexOf(file.file_format_type.toLowerCase() > -1))) {
-                trackObj.heightPx = 120;
-            } else {
-                trackObj.heightPx = 80;
+                (['bedrnaelements', 'peptidemapping', 'bedexonscore', 'bed12', 'bed9'].indexOf(file.file_format_type.toLowerCase()) > -1)) {
+                trackObj.name = <TrackLabel file={file} label={label} long />;
+                trackObj.heightPx = 90;
+                trackObj.expandable = false;
             }
             return trackObj;
         });
@@ -635,6 +680,7 @@ GenomeBrowser.propTypes = {
     files: PropTypes.array.isRequired,
     expanded: PropTypes.bool.isRequired,
     assembly: PropTypes.string,
+    label: PropTypes.string.isRequired,
 };
 
 GenomeBrowser.defaultProps = {
