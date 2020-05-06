@@ -9,8 +9,7 @@
 network.host: 0.0.0.0
 http.port: 9201
 transport.tcp.port: 9299
-discovery.type: ec2
-cloud.aws.region: us-west-2
+discovery.seed_providers: ec2
 discovery.ec2.groups: elasticsearch-https, ssh-http-https
 indices.query.bool.max_clause_count: 8192
 

@@ -64,6 +64,13 @@ else
 fi
 copy_with_permission "$opts_src/$es_opts_filename" "$opts_dest/elasticsearch.yml"
 
+# Set up permissions for elasticsearch user
+sudo chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/
+sudo chown -R elasticsearch:elasticsearch /var/log/elasticsearch/
+
+# Access Elasticsearch logs without elevated permissions
+sudo usermod -a -G elasticsearch ubuntu
+
 # Install discovery for clusters, maybe only needed for clusters
 sudo /usr/share/elasticsearch/bin/elasticsearch-plugin install discovery-ec2
 # Add es service and start
