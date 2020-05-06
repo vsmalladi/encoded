@@ -6,7 +6,7 @@
 # test-trace es-cluter-wait
 ## 
 
-network.host: 0.0.0.0
+network.host: _ec2_
 http.port: 9201
 transport.tcp.port: 9299
 discovery.seed_providers: ec2
