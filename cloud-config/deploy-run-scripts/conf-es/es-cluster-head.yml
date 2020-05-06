@@ -12,6 +12,7 @@ transport.tcp.port: 9299
 discovery.seed_providers: ec2
 discovery.ec2.groups: elasticsearch-https, ssh-http-https
 discovery.ec2.host_type: tag:ec_cluster_name
+discovery.ec2.endpoint: ec2.us-west-2.amazonaws.com
 indices.query.bool.max_clause_count: 8192
 path.logs: /var/log/elasticsearch
 
